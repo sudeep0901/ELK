@@ -1,0 +1,239 @@
+sudo systemctl start elasticsearch
+service elasticsearch start
+ sudo gedit /etc/elasticsearch/elasticsearch.yml 
+
+Elastic Search server
+
+localhost:9200
+
+sudeep@sudeep:/usr/share/elasticsearch$ sudo ./bin/elasticsearch -Ecluster.name=pluralsight_es -Enode.name=my_first_node
+
+curl localhost:9200/_nodes/hot_threads'
+
+
+indices.cache.filter.size: 10%
+indices.fielddata.cache.size: 50%
+indices.memory.index_buffer_size: 30%
+
+
+MONitoring
+
+http://localhost:9200/_cat/health?v&pretty
+
+response: 
+epoch      timestamp cluster          status node.total node.data shards pri relo init unassign pending_tasks max_task_wait_time active_shards_percent
+1541062499 14:24:59  globo.monitoring yellow          1         1      6   6    0    0        5             0                  -                 54.5%  
+    status : green. yellow, red
+
+
+
+CRUD Using curl
+--------------------------------------------------------------
+indices
+get request - curl -XGET 'localhost:9200/_cat/indices?v&pretty'
+
+nodes
+curl -XGET 'localhost:9200/_cat/nodes?v&pretty'
+
+
+
+sudeep@sudeep:~/Projects/Learning/python@github$ curl -XPUT 'localhost:9200/products?&pretty'
+{
+  "acknowledged" : true,
+  "shards_acknowledged" : true,
+  "index" : "products"
+}
+
+curl -XGET 'localhost:9200/_cat/indices?v&pretty'
+
+health status index               uuid                   pri rep docs.count docs.deleted store.size pri.store.size
+yellow open   logstash-2018.10.14 j3RAeiTxRiepjbdYAzTuJA   5   1          2            0      9.5kb          9.5kb
+green  open   .kibana             UL-tVbycRJ-ExHxH2XDgzw   1   0         42          113    164.7kb        164.7kb
+yellow open   products            nvtvqOB3T2ObuIVwYgMo4A   5   1          0            0      1.1kb          1.1kb
+
+
+curl -XPUT 'localhost:9200/customers?&pretty'
+
+
+curl -H "Content-type: application/json"  -X PUT 'localhost:9200/products/mobiles/1?pretty' -d '{
+"name":"Nokia 7 plus",
+"camera":"12MP"
+,
+"storage":"64GB",
+"display":"6 inch",
+"battery":"3800mah",
+"reviews":["great phone in mid range excellent camera", "android updaes promised"]
+}
+'
+{
+  "_index" : "products",
+  "_type" : "mobiles",
+  "_id" : "1",
+  "_version" : 5,
+  "result" : "updated",
+  "_shards" : {
+    "total" : 2,
+    "successful" : 1,
+    "failed" : 0
+  },
+  "_seq_no" : 4,
+  "_primary_term" : 1
+}
+
+
+
+curl -XGET 'localhost:9200/products/mobiles/1?&pretty'
+
+
+
+localhost:9200/products/mobiles/1?pretty
+
+update a document
+localhost:9200/products/mobiles/1/_update?pretty
+
+elasticsearch 6 does nto allow more than 1 type in same index
+creaet new one
+
+localhost:9200/shoes/1?pretty
+
+curl -XPUT 'localhost:9200/shoes?&pretty
+
+
+can update documet programmatically using script tag in request body 
+increament
+decrement
+
+XDELTE request in curl to delete document type
+
+
+curl -i switch shows header of response
+
+
+to fethch multiple document at ones
+
+
+GET /test/_mget
+{
+    "docs" : [
+        {
+            "_type" : "_doc",
+            "_id" : "1"
+        },
+        {
+            "_type" : "_doc",
+            "_id" : "2"
+        }
+    ]
+}
+
+
+_mget 
+----------------
+    curl -X GET "localhost:9200/_mget" -H 'Content-Type: application/json' -d'
+{
+    "docs" : [
+        {
+            "_index" : "products",
+            "_type" : "mobiles",
+            "_id" : "1"
+        },
+        {
+            "_index" : "products",
+            "_type" : "mobiles",
+            "_id" : "2"
+        }
+    ]
+}
+
+
+request("http://localhost:9200/cutomers/_search?q=wyoing&pretty"
+
+
+
+
+curl -H "Content-Type: application/zx-ndjson" -XPOST 'localhost:9200/cutomers/personal/_bulk?pretty&refresh' -data-binary & @"elasticsearch_all.txt"
+
+
+curl -XDELETE 'localhost:9200/customers?pretty'
+
+// bulk load
+
+curl -H "Content-Type: application/x-ndjson" -XPOST 'localhost:9200/cutomers/personal/_bulk?pretty&refresh' --data-binary @"elasticsearch_all.json"
+
+curl -H "Content-Type: application/json" -XGET 'http://localhost:9200/cutomers/_search?pretty' -d '
+
+DSL
+----------
+
+curl -H "Content-Type: application/json" -XGET 'http://localhost:9200/cutomers/_search?pretty' -d '
+{
+"query": {"match_all" :{}}
+}
+'
+
+
+
+curl -H "Content-Type: application/json" -XGET 'http://localhost:9200/cutomers/_search?pretty' -d '
+{
+"query": {"match_all" :{}}, 
+"size":3
+}
+'
+
+// Sort
+-------------------
+
+curl -H "Content-Type: application/json" -XGET 'http://localhost:9200/cutomers/_search?pretty' -d '
+{
+"query": {"match_all" :{}}, "sort":{"age" : {"order" : "desc"} }, "size":3
+}
+'
+
+
+term searches for big document----------------
+----------------------------------------------
+
+curl -H "Content-Type: application/json" -XGET 'http://localhost:9200/cutomers/_search?pretty' -d '
+{
+"query": {"term" : { "name" : "gates" }}, "sort":{"age" : {"order" : "desc"} }, "size":3
+}
+'
+
+
+curl -H "Content-Type: application/json" -XGET 'http://localhost:9200/cutomers/_search?pretty' -d '
+{
+"query": {"_source" :false },
+"term" : { "name" : "gates" }}, "sort":{"age" : {"order" : "desc"} }, "size":3
+}
+'
+
+curl -H "Content-Type: application/json" -XGET 'http://localhost:9200/cutomers/_search?pretty' -d '
+{
+"query": {"_source" :st* }, //all fields contains "st"
+"term" : { "name" : "gates" }}, "sort":{"age" : {"order" : "desc"} }, "size":3
+}
+'
+
+"includes"
+"excludes" in _source
+
+Full text searches
+----------------------------------------------------------------
+match
+match_phrase - sentences exact match
+
+curl -H "Content-Type: application/json" -XGET 'http://localhost:9200/cutomers/_search?pretty' -d '
+{
+"query": {"match" : { "name" : "webster" }}}
+'
+
+match_phrase_prefix
+-------------------
+curl -H "Content-Type: application/json" -XGET 'http://localhost:9200/cutomers/_search?pretty' -d '
+{
+"query": {"match_phrase_prefix" : { "street" : "Pl" }}}
+'
+
+
+TF - TERM Frequest how offen  appear in field
+IDF - INveserse document frequency how offen term in entire docoument
