@@ -145,3 +145,63 @@ GET /megacorp/employee/_search
         }
     }
 }
+
+GET /megacorp/employee/_search
+{
+    "query": {
+        "match": {
+            "last_name": "smith"
+        }
+    },
+    "aggs": {
+        "all_interests": {
+            "terms": {
+                "field": "interests"
+            }
+        }
+    }
+}
+
+
+// Fielddata is disabled on text fields by default. Set fielddata=true on [interests] in order to load fielddata in memory by uninverting the inverted index. Note that this can however use significant memory. Alternatively use a keyword field instead
+PUT megacorp/_mapping
+{
+  "properties": {
+    "interests": { 
+      "type":     "text",
+      "fielddata": true
+    }
+  }
+}
+
+GET megacorp/_mapping
+
+GET /megacorp/employee/_search
+{
+    "aggs": {
+        "all_interests": {
+            "terms": {
+                "field": "interests"
+            },
+            "aggs": {
+                "avg_age": {
+                    "avg": {
+                        "field": "age"
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+GET megacorp/employee/_search
+{
+    "aggs": {
+        "all_interests": {
+            "terms": {"field": "interests"} 
+        }
+        
+    }
+
+}
