@@ -3,6 +3,7 @@
 
 // GET http://localhost:9200/?pretty
 
+
 GET _count?pretty
 {
     "query": {
